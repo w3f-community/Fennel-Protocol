@@ -1,5 +1,5 @@
-use crate::{mock::*};
-use frame_support::{assert_ok};
+use crate::{Error, mock::*};
+use frame_support::{assert_ok, assert_noop};
 
 #[test]
 fn issue_identity() {
@@ -38,5 +38,17 @@ fn issue_identity_registers_same_account_id_with_multiple_new_identities() {
 
         assert_eq!(IdentityModule::identity_list(300).contains(&1), true);
         assert_eq!(IdentityModule::identity_list(300).contains(&2), true);
+    });
+}
+
+#[test]
+fn issue_identity_throws_overflow() {
+    new_test_ext().execute_with(|| {
+        // how do we set the state of IdentityNumber to u32::max_value() ?
+
+        assert_noop!(
+            IdentityModule::create_identity(Origin::signed(1)),
+            Error::<Test>::StorageOverflow
+        );
     });
 }
