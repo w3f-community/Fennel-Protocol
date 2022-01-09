@@ -140,8 +140,16 @@ pub mod pallet {
 
             ensure!(Self::is_identity_owned_by_sender(&who, &identity_id), Error::<T>::IdentityNotOwned);
 
-            <IdentityTraitList<T>>::try_mutate(identity_id, key, |v| -> DispatchResult {
+            /* <IdentityTraitList<T>>::try_mutate(identity_id, key, |v| -> DispatchResult {
                 *v = value;
+                Ok(())
+            })?; */
+
+            <IdentityList<T>>::try_mutate(&who, |ids| -> DispatchResult {
+                ids.entry(identity_id).and_modify(|identity_traits| {
+                    identity_traits.insert(key, value);
+                });
+
                 Ok(())
             })?;
 
@@ -157,7 +165,14 @@ pub mod pallet {
 
             ensure!(Self::is_identity_owned_by_sender(&who, &identity_id), Error::<T>::IdentityNotOwned);
 
-            <IdentityTraitList<T>>::remove(identity_id, key);
+            <IdentityList<T>>::try_mutate(&who, |ids| -> DispatchResult {
+                ids.entry(identity_id).and_modify(|identity_traits| {
+                    identity_traits.remove(&key);
+                });
+
+                Ok(())
+            })?;
+
             Self::deposit_event(Event::IdentityUpdated(identity_id, who));
 
             Ok(())
