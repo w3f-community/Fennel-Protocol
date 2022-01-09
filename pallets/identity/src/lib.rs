@@ -16,7 +16,7 @@ pub mod pallet {
     use frame_support::{dispatch::DispatchResult, pallet_prelude::*};
     use frame_system::pallet_prelude::*;
     use frame_support::inherent::Vec;
-    use codec::alloc::collections::BTreeSet;
+    use codec::alloc::collections::BTreeMap;
 
     #[pallet::config]
     pub trait Config: frame_system::Config {
@@ -48,7 +48,7 @@ pub mod pallet {
     #[pallet::storage]
     #[pallet::getter(fn identity_list)]
     /// Maps accounts to the array of identities it owns.
-    pub type IdentityList<T: Config> = StorageMap<_, Blake2_128Concat, T::AccountId, BTreeSet<u32>, ValueQuery>;
+    pub type IdentityList<T: Config> = StorageMap<_, Blake2_128Concat, T::AccountId, BTreeMap<u32, BTreeMap<Vec<u8>, Vec<u8>>>, ValueQuery>;
 
     #[pallet::storage]
     #[pallet::getter(fn identity_trait_list)]
@@ -88,7 +88,7 @@ pub mod pallet {
     impl<T: Config> Pallet<T> {
         fn is_identity_owned_by_sender(account_id: &T::AccountId, identity_id: &u32) -> bool {
             match <IdentityList<T>>::try_get(account_id) {
-                Result::Ok(ids) => { ids.contains(identity_id) },
+                Result::Ok(ids) => { ids.contains_key(identity_id) },
                 Result::Err(_) => { false },
             }
         }
@@ -104,7 +104,7 @@ pub mod pallet {
             let new_id: u32 = current_id.checked_add(1).ok_or(Error::<T>::StorageOverflow)?;
 
             <IdentityList<T>>::try_mutate(&who, |ids| -> DispatchResult {
-                ids.insert(current_id);
+                ids.insert(current_id, BTreeMap::new());
                 Ok(())
             })?;
 
@@ -123,7 +123,7 @@ pub mod pallet {
             let new_total = <RevokedIdentityNumber<T>>::get().checked_add(1).ok_or(Error::<T>::StorageOverflow)?;
 
             <IdentityList<T>>::try_mutate(&who, |ids| -> DispatchResult {
-                ensure!(ids.remove(&identity_id), Error::<T>::IdentityNotOwned);
+                ensure!(ids.remove(&identity_id).is_some(), Error::<T>::IdentityNotOwned);
                 Ok(())
             })?;
 
