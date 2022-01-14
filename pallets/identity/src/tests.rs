@@ -25,8 +25,8 @@ fn issue_identity_registers_different_account_ids_with_new_identities() {
         assert_ok!(IdentityModule::create_identity(Origin::signed(300)));
         assert_ok!(IdentityModule::create_identity(Origin::signed(200)));
 
-        assert_eq!(IdentityModule::identity_list(300).contains(&0), true);
-        assert_eq!(IdentityModule::identity_list(200).contains(&1), true);
+        assert_eq!(IdentityModule::identity_list(300).contains_key(&0), true);
+        assert_eq!(IdentityModule::identity_list(200).contains_key(&1), true);
     });
 }
 
@@ -36,8 +36,8 @@ fn issue_identity_registers_same_account_id_with_multiple_new_identities() {
         assert_ok!(IdentityModule::create_identity(Origin::signed(300)));
         assert_ok!(IdentityModule::create_identity(Origin::signed(300)));
 
-        assert_eq!(IdentityModule::identity_list(300).contains(&0), true);
-        assert_eq!(IdentityModule::identity_list(300).contains(&1), true);
+        assert_eq!(IdentityModule::identity_list(300).contains_key(&0), true);
+        assert_eq!(IdentityModule::identity_list(300).contains_key(&1), true);
     });
 }
 
